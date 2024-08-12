@@ -1,0 +1,5 @@
+logging:
+  log_file: video_insight.log
+  log_level: DEBUG
+  console_output: true
+  clear_old_logs: true

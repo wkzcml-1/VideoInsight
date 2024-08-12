@@ -1,0 +1,7 @@
+/test
+checkpoints
+.env
+data
+dataset
+__pycache__
+logs
