@@ -3,7 +3,6 @@ torch==2.3.1
 torchvision==0.18.1
 transformers==4.40.0
 sentencepiece==0.1.99
-decord==0.6.0
 huggingface_hub==0.24.5
 jupyter==1.0.0
 datasets==2.20.0
@@ -13,5 +12,5 @@ llama-index-vector-stores-chroma==0.1.10
 llama-index-embeddings-huggingface==0.2.2
 llama_index==0.10.6
 scenedetect[opencv]==0.6.4
-
+faster-whisper==1.0.3
 

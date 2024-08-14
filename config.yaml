@@ -3,3 +3,6 @@ logging:
   log_level: DEBUG
   console_output: true
   clear_old_logs: true
+
+video_processing:
+  debug: false

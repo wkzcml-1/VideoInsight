@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # conda environment name
-ENV_NAME="mi"
+ENV_NAME="vi"
 
 # create conda environment if it doesn't exist
 if ! conda env list | awk '{print $1}' | grep -wq "$ENV_NAME"; then
@@ -50,6 +50,11 @@ huggingface-cli download --resume-download $BGE_M3_MODEL --local-dir $BGE_M3_DIR
 LARGER_CLAP_MODEL="laion/larger_clap_general"
 LARGER_CLAP_DIR="./checkpoints/$LARGER_CLAP_MODEL"
 huggingface-cli download --resume-download $LARGER_CLAP_MODEL --local-dir $LARGER_CLAP_DIR
+
+# download Systran/faster-distil-whisper-large-v3
+WHISPER_MODEL="Systran/faster-distil-whisper-large-v3"
+WHISPER_DIR="./checkpoints/$WHISPER_MODEL"
+huggingface-cli download --resume-download $WHISPER_MODEL --local-dir $WHISPER_DIR
 
 # if not exist dataset directory, create it
 if [ ! -d "dataset" ]; then

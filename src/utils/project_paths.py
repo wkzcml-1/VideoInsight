@@ -16,6 +16,9 @@ LOGS_DIR = os.path.join(PROJECT_ROOT, 'logs')
 # config file path
 CONFIG_FILE = os.path.join(PROJECT_ROOT, 'config.yaml')
 
+# debug results directory
+DEBUG_DIR = os.path.join(PROJECT_ROOT, 'data/debug')
+
 if __name__ == '__main__':
     print("PROJECT_ROOT", PROJECT_ROOT)
     print("CHECKPOINTS_DIR", CHECKPOINTS_DIR)
