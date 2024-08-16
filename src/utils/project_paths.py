@@ -1,4 +1,6 @@
 import os
+# get date
+from datetime import datetime
 
 # Root directory of the project
 # _file_ : Project/src/utils/project_paths.py
@@ -11,13 +13,15 @@ CHECKPOINTS_DIR = os.path.join(PROJECT_ROOT, 'checkpoints')
 DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
 
 # logs directory
-LOGS_DIR = os.path.join(PROJECT_ROOT, 'logs')
+# today's date
+TODAY = datetime.now().strftime("%Y-%m-%d")
+LOGS_DIR = os.path.join(PROJECT_ROOT, 'logs', TODAY)
 
 # config file path
 CONFIG_FILE = os.path.join(PROJECT_ROOT, 'config.yaml')
 
 # debug results directory
-DEBUG_DIR = os.path.join(PROJECT_ROOT, 'data/debug')
+DEBUG_DIR = os.path.join(LOGS_DIR, 'debug')
 
 if __name__ == '__main__':
     print("PROJECT_ROOT", PROJECT_ROOT)

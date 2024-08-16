@@ -26,10 +26,11 @@ if [ -f "requirements.txt" ]; then
     # install llama.cpp with its python bindings
     # if llama-cpp-python is not installed, install it with CUDA support
     if ! pip show llama-cpp-python; then
-        CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python -vv
+        CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
     fi
 else
     echo "requirements.txt not found. Skipping dependency installation."
+    exit 1
 fi
 
 echo "Environment setup complete."
@@ -39,22 +40,22 @@ echo "Environment setup complete."
 MiniCPM_MODEL="openbmb/MiniCPM-V-2_6-gguf"
 MiniCPM_GGUF_VERSION="ggml-model-Q8_0.gguf"
 MiniCPM_DIR="./checkpoints/$MiniCPM_MODEL"
-huggingface-cli download --resume-download $MiniCPM_MODEL $MiniCPM_GGUF_VERSION --local-dir $MiniCPM_DIR
+huggingface-cli download  $MiniCPM_MODEL $MiniCPM_GGUF_VERSION --local-dir $MiniCPM_DIR
 
 # download BAAI/bge-m3 model
 BGE_M3_MODEL="BAAI/bge-m3"
 BGE_M3_DIR="./checkpoints/$BGE_M3_MODEL"
-huggingface-cli download --resume-download $BGE_M3_MODEL --local-dir $BGE_M3_DIR
+huggingface-cli download  $BGE_M3_MODEL --local-dir $BGE_M3_DIR
 
 # download laion/larger_clap_general
 LARGER_CLAP_MODEL="laion/larger_clap_general"
 LARGER_CLAP_DIR="./checkpoints/$LARGER_CLAP_MODEL"
-huggingface-cli download --resume-download $LARGER_CLAP_MODEL --local-dir $LARGER_CLAP_DIR
+huggingface-cli download  $LARGER_CLAP_MODEL --local-dir $LARGER_CLAP_DIR
 
 # download Systran/faster-distil-whisper-large-v3
-WHISPER_MODEL="Systran/faster-distil-whisper-large-v3"
+WHISPER_MODEL="openai/whisper-large-v3"
 WHISPER_DIR="./checkpoints/$WHISPER_MODEL"
-huggingface-cli download --resume-download $WHISPER_MODEL --local-dir $WHISPER_DIR
+huggingface-cli download  $WHISPER_MODEL --local-dir $WHISPER_DIR
 
 # if not exist dataset directory, create it
 if [ ! -d "dataset" ]; then

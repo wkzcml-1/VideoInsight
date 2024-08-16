@@ -1,6 +1,6 @@
 import os
 import logging
-from project_paths import LOGS_DIR
+from project_paths import LOGS_DIR, DEBUG_DIR
 from load_config import load_config
 
 # load config file
@@ -24,6 +24,19 @@ if clear_old_logs:
     # clear old log file
     if os.path.exists(log_path):
         os.remove(log_path)
+    # clear old debug files
+    if os.path.exists(DEBUG_DIR):
+        # delete all files and directory in the directory
+        for file in os.listdir(DEBUG_DIR):
+            file_path = os.path.join(DEBUG_DIR, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    os.rmdir(file_path)
+            except Exception as e:
+                print(e)
+
 
 # logger configuration
 logger = logging.getLogger(__name__)
