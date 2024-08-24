@@ -41,7 +41,7 @@ class WhisperModel(ASRModel):
 
         self.torch_dtype = torch.float32 if self.device == 'cpu' else torch.float16
         # if self.device == 'cuda', use flash-attn
-        if self.device == 'cuda':
+        if 'cuda' in self.device:
             self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
                 self.model_id, torch_dtype=self.torch_dtype, low_cpu_mem_usage=True,
                 attn_implementation="flash_attention_2"
@@ -66,9 +66,10 @@ class WhisperModel(ASRModel):
         result = pipe(audio, return_timestamps=True)['chunks']
 
         if self.debug:
-            os.makedirs(DEBUG_DIR, exist_ok=True)
+            ASR_DEBUG_DIR = os.path.join(DEBUG_DIR, 'asr')
+            os.makedirs(ASR_DEBUG_DIR, exist_ok=True)
             now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            debug_path = os.path.join(DEBUG_DIR, f'whisper_{now}.txt')
+            debug_path = os.path.join(ASR_DEBUG_DIR, f'whisper_{now}.txt')
             with open(debug_path, 'w') as f:
                 for segment in result:
                     f.write(f"[{segment['timestamp'][0]} -> {segment['timestamp'][1]}] {segment['text']}\n")
