@@ -3,6 +3,21 @@
 # conda environment name
 ENV_NAME="vi"
 
+# setup mongodb, milvus by docker\
+# create database directory
+if [ ! -d "database" ]; then
+    mkdir database
+fi
+# create database/mongodb_data database/milvus_data directory
+if [ ! -d "database/mongodb_data" ]; then
+    mkdir database/mongodb_data
+fi
+if [ ! -d "database/milvus_data" ]; then
+    mkdir database/milvus_data
+fi
+
+docker-compose up -d
+
 # create conda environment if it doesn't exist
 if ! conda env list | awk '{print $1}' | grep -wq "$ENV_NAME"; then
     echo "Creating Conda environment..."

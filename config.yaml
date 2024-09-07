@@ -1,8 +1,11 @@
-logging:
-  log_file: video_insight.log
-  log_level: DEBUG
-  console_output: true
-  clear_old_logs: true
+LOGGING:
+  LOG_FILE: video_insight.log
+  LOG_LEVEL: DEBUG
+  CONSOLE_OUTPUT: true
+  CLEAR_OLD_LOGS: true
 
 video_processing:
+  debug: false
+
+automatic_speech_recognition:
   debug: false

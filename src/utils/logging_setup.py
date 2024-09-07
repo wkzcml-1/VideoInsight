@@ -11,10 +11,10 @@ config = load_config()
 #   log_level: DEBUG
 #   console_output: false
 
-log_path = os.path.join(LOGS_DIR, config['logging']['log_file'])
-log_level = getattr(logging, config['logging']['log_level'].upper())
-console_output = config['logging']['console_output']
-clear_old_logs = config['logging']['clear_old_logs']
+log_path = os.path.join(LOGS_DIR, config['LOGGING']['LOG_FILE'])
+log_level = getattr(logging, config['LOGGING']['LOG_LEVEL'].upper())
+console_output = config['LOGGING']['CONSOLE_OUTPUT']
+clear_old_logs = config['LOGGING']['CLEAR_OLD_LOGS']
 
 # create logs directory if it does not exist
 if not os.path.exists(LOGS_DIR):
