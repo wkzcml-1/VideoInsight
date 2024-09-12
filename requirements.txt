@@ -10,4 +10,4 @@ scenedetect[opencv]==0.6.4
 librosa==0.10.2
 accelerate==0.33.0
 bitsandbytes==0.43.3
-pymilvus==2.4.5
+pymilvus[model]==2.4.5

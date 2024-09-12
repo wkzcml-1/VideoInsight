@@ -16,7 +16,9 @@ if [ ! -d "database/milvus_data" ]; then
     mkdir database/milvus_data
 fi
 
-docker-compose up -d
+# start mongodb, milvus by docker
+# if mongodb, milvus is not running, restart it unless it is running
+docker compose up -d
 
 # create conda environment if it doesn't exist
 if ! conda env list | awk '{print $1}' | grep -wq "$ENV_NAME"; then
