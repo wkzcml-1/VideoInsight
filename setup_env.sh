@@ -64,11 +64,16 @@ BGE_M3_MODEL="BAAI/bge-m3"
 BGE_M3_DIR="./checkpoints/$BGE_M3_MODEL"
 huggingface-cli download  $BGE_M3_MODEL --local-dir $BGE_M3_DIR
 
-# download laion/larger_clap_general
-LARGER_CLAP_MODEL="laion/larger_clap_general"
-LARGER_CLAP_DIR="./checkpoints/$LARGER_CLAP_MODEL"
-huggingface-cli download  $LARGER_CLAP_MODEL --local-dir $LARGER_CLAP_DIR
+# download BAAI/bge-reranker-v2-m3 model
+BGE_RERANKER_V2_M3_MODEL="BAAI/bge-reranker-v2-m3"
+BGE_RERANKER_V2_M3_DIR="./checkpoints/$BGE_RERANKER_V2_M3_MODEL"
+huggingface-cli download  $BGE_RERANKER_V2_M3_MODEL --local-dir $BGE_RERANKER_V2_M3_DIR
 
+# download BAAI/AltCLIP model
+ALTCLIP_MODEL="BAAI/AltCLIP"
+ALTCLIP_DIR="./checkpoints/$ALTCLIP_MODEL"
+huggingface-cli download  $ALTCLIP_MODEL --local-dir $ALTCLIP_DIR
+ 
 # download Systran/faster-distil-whisper-large-v3
 WHISPER_MODEL="openai/whisper-large-v3"
 WHISPER_DIR="./checkpoints/$WHISPER_MODEL"
