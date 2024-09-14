@@ -2,6 +2,8 @@ import os
 import logging
 import pymilvus
 
+from collections import defaultdict
+
 from pymilvus import (
     connections, utility, DataType,
     FieldSchema, CollectionSchema, 
@@ -141,7 +143,11 @@ class MilvusHandler:
         # remove duplicates
         hits_rd = list(set(hits))
         self.visual_collection.release()
-        return hits_rd
+        # combine same video_id into dictionary
+        hits_dict = defaultdict(list)
+        for hit in hits_rd:
+            hits_dict[hit[0]].append(hit[1])    
+        return hits_dict
     
     def search_audio_vectors(self, video_id, vectors, top_k=10):
         self.audio_collection.load()
@@ -154,4 +160,21 @@ class MilvusHandler:
         # remove duplicates
         hits_rd = list(set(hits))
         self.audio_collection.release()
-        return hits_rd
+        # combine same video_id into dictionary
+        hits_dict = defaultdict(list)
+        for hit in hits_rd:
+            hits_dict[hit[0]].append(hit[1])
+        return hits_dict
+    
+    def delete_by_video_id(self, video_id):
+        self.visual_collection.delete(expr=f"video_id == '{video_id}'")
+        self.audio_collection.delete(expr=f"video_id == '{video_id}'")
+        logger.info(f"Deleted all segments for video_id: {video_id}")
+    
+    def drop_all_collections(self):
+        try:
+            self.visual_collection.drop()
+            self.audio_collection.drop()
+            logger.info("All milvus collections dropped")
+        except Exception as e:
+            logger.error(f"Error dropping collections: {e}")

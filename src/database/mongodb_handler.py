@@ -5,8 +5,6 @@ import uuid
 import os
 from urllib.parse import quote
 
-import hashlib
-
 logger = logging.getLogger(__name__)
 
 # Get the database connection string from the environment
@@ -29,6 +27,10 @@ class MongoDBHandler:
         self.db.video_metadata.create_index([("video_id", ASCENDING)], unique=True)
         self.db.visual_segments.create_index([("video_id", ASCENDING), ('segment_id', ASCENDING)], unique=True)
         self.db.audio_segements.create_index([("video_id", ASCENDING), ('segment_id', ASCENDING)], unique=True)
+        # setup indexes for search: start_time, end_time
+        self.db.visual_segments.create_index([("start_time", ASCENDING), ("end_time", ASCENDING)])
+        self.db.audio_segements.create_index([("start_time", ASCENDING), ("end_time", ASCENDING)])
+        logger.info("MongoDB indexes created")
 
     def get_next_visual_segment_id(self, video_id):
         counter = self.visual_counters.find_one_and_update(
@@ -62,10 +64,6 @@ class MongoDBHandler:
     def insert_video_metadata(self, video_id, metadata):
         assert 'path' in metadata, "Metadata should have path"
         assert 'hash' in metadata, "Metadata should have hash"
-        # check if hash is provided
-        if self.check_video_registered(metadata['hash']):
-            logger.info(f"Video already registered with hash: {metadata['hash']}")
-            return
         # combine video_id with metadata
         metadata['video_id'] = video_id
         self.db.video_metadata.insert_one(metadata)
@@ -74,7 +72,12 @@ class MongoDBHandler:
     def insert_visual_segment(self, video_id, segment):
         # check if contains time information
         assert 'start_time' in segment and 'end_time' in segment,  \
-            "Segment should have start_time and end_time"
+            "Visual segment should have start_time and end_time"
+        assert 'description' in segment, "Visual segment should have description"
+        # drop vector keys
+        for key in segment.keys():
+            if 'vector' in key:
+                segment.pop(key)
         # insert video_id and segment
         segment['video_id'] = video_id
         segment['segment_id'] = self.get_next_visual_segment_id(video_id)
@@ -86,19 +89,71 @@ class MongoDBHandler:
         # check if contains time information
         assert 'start_time' in transcript and 'end_time' in transcript,  \
           "Transcript should have start_time and end_time"    
+        # drop vector keys
+        for key in transcript.keys():
+            if 'vector' in key:
+                transcript.pop(key)
         # insert video_id and segment_id
         transcript['video_id'] = video_id
         transcript['segment_id'] = self.get_next_audio_segment_id(video_id)
         self.db.audio_segements.insert_one(transcript)
         logger.info(f"Video transcript inserted for video_id: {video_id}")
         return transcript['segment_id']
-        
-    def delete_video_info(self, video_id):
+    
+    def get_video_metadata(self, video_id):
+        return self.db.video_metadata.find_one({'video_id': video_id})
+    
+    def get_visual_segments(self, video_id, segment_id=None):
+        if segment_id is None:
+            return self.db.visual_segments.find({'video_id': video_id})
+        if isinstance(segment_id, list):
+            return self.db.visual_segments.find({'video_id': video_id, 'segment_id': {'$in': segment_id}})
+        return self.db.visual_segments.find_one({'video_id': video_id, 'segment_id': segment_id})
+    
+    def get_audio_segments(self, video_id, segment_id=None):
+        if segment_id is None:
+            return self.db.audio_segements.find({'video_id': video_id})
+        if isinstance(segment_id, list):
+            return self.db.audio_segements.find({'video_id': video_id, 'segment_id': {'$in': segment_id}})
+        return self.db.audio_segements.find_one({'video_id': video_id, 'segment_id': segment_id})
+    
+    def search_visual_segments_by_time(self, video_id, start_time, end_time=None):
+        # if end_time is not provided, search for segments that contain start_time
+        if end_time is None:
+            return self.db.visual_segments.find(
+                {'video_id': video_id, 'start_time': {'$lte': start_time}, 'end_time': {'$gte': start_time}}
+            )
+        # search for segments overlapping with the time range
+        return self.db.visual_segments.find(
+            {'video_id': video_id, 'start_time': {'$lte': end_time}, 'end_time': {'$gte': start_time}}
+        )
+    
+    def search_audio_segments_by_time(self, video_id, start_time, end_time=None):
+        # if end_time is not provided, search for segments that contain start_time
+        if end_time is None:
+            return self.db.audio_segements.find(
+                {'video_id': video_id, 'start_time': {'$lte': start_time}, 'end_time': {'$gte': start_time}}
+            )
+        # search for segments overlapping with the time range
+        return self.db.audio_segements.find(
+            {'video_id': video_id, 'start_time': {'$lte': end_time}, 'end_time': {'$gte': start_time}}
+        )
+
+    def delete_by_video_id(self, video_id):
         self.db.video_metadata.delete_one({'video_id': video_id})
         logger.info(f"Video metadata deleted for video_id: {video_id}")
         # delete all segments and transcripts
         self.db.visual_segments.delete_many({'video_id': video_id})
         self.db.audio_segements.delete_many({'video_id': video_id})
         logger.info(f"Video segments and transcripts deleted for video_id: {video_id}")
+
+    def drop_all_collections(self):
+        try:
+            self.db.video_metadata.drop()
+            self.db.visual_segments.drop()
+            self.db.audio_segements.drop()
+            logger.info("All mongodb collections dropped")
+        except Exception as e:
+            logger.error(f"Error dropping collections: {e}")
         
         

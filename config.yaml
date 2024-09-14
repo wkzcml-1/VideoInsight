@@ -9,3 +9,16 @@ video_processing:
 
 automatic_speech_recognition:
   debug: false
+
+TEXT_EMBEDDING_MODEL:
+  DEVICE: cpu
+  MODEL_ID: BAAI/bge-m3
+
+IMAGE_TEXT_RETRIEVAL_MODEL:
+  DEVICE: cpu
+  MODEL_ID: BAAI/AltCLIP
+
+RERANKER_MODEL:
+  DEVICE: cpu
+  MODEL_ID: BAAI/bge-reranker-v2-m3
+  
