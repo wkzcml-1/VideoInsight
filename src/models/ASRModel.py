@@ -22,11 +22,11 @@ class ASRModel(ABC):
         pass
     
     @abstractmethod
-    def move_to_device(self):
+    def load_model(self):
         pass
 
     @abstractmethod
-    def move_to_cpu(self):
+    def unload_model(self):
         pass
 
     
@@ -40,21 +40,13 @@ class WhisperModel(ASRModel):
         self.debug = kwargs.get('debug', False)
 
         self.torch_dtype = torch.float32 if self.device == 'cpu' else torch.float16
-        # if self.device == 'cuda', use flash-attn
-        if 'cuda' in self.device:
-            self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
-                self.model_id, torch_dtype=self.torch_dtype, low_cpu_mem_usage=True,
-                attn_implementation="flash_attention_2"
-            )
-        else:
-            self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
-                self.model_id, torch_dtype=self.torch_dtype, low_cpu_mem_usage=True
-            )
+        self.model = None
+        self.load_model()
         self.processor = AutoProcessor.from_pretrained(self.model_id)
-        logger.info(f"Whisper model loaded from {self.model_id}")
-
+       
     def transcribe(self, audio, sample_rate=16_000):
-        clear_memory()
+        if self.model is None:
+            self.load_model()
         pipe = pipeline(
             "automatic-speech-recognition",
             model=self.model,
@@ -82,13 +74,29 @@ class WhisperModel(ASRModel):
         logger.info(f"Transcribing {audio_path} with sample rate {fs}")
         return self.transcribe(audio, sample_rate=fs)
     
-    def move_to_device(self):
+    def load_model(self):
+        if self.model is not None:
+            return
+        # if self.device == 'cuda', use flash-attn
+        if 'cuda' in self.device:
+            self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
+                self.model_id, torch_dtype=self.torch_dtype, low_cpu_mem_usage=True,
+                attn_implementation="flash_attention_2"
+            )
+        else:
+            self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
+                self.model_id, torch_dtype=self.torch_dtype, low_cpu_mem_usage=True
+            )
         self.model.to(self.device)
+        logger.info(f"Whisper model loaded from {self.model_id}")
         clear_memory()
-    
-    def move_to_cpu(self):
-        self.model.to('cpu')
+        
+    def unload_model(self):
+        if self.model is None:
+            return
+        del self.model
         clear_memory()
+        self.model = None
 
 
         

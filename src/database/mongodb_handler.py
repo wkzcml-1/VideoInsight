@@ -28,6 +28,7 @@ class MongoDBHandler:
         self.db.visual_segments.create_index([("video_id", ASCENDING), ('segment_id', ASCENDING)], unique=True)
         self.db.audio_segements.create_index([("video_id", ASCENDING), ('segment_id', ASCENDING)], unique=True)
         # setup indexes for search: start_time, end_time
+        self.db.video_metadata.create_index([("hash", ASCENDING)], unique=True)
         self.db.visual_segments.create_index([("start_time", ASCENDING), ("end_time", ASCENDING)])
         self.db.audio_segements.create_index([("start_time", ASCENDING), ("end_time", ASCENDING)])
         logger.info("MongoDB indexes created")
@@ -89,6 +90,7 @@ class MongoDBHandler:
         # check if contains time information
         assert 'start_time' in transcript and 'end_time' in transcript,  \
           "Transcript should have start_time and end_time"    
+        assert 'transcript' in transcript, "Transcript should have transcript"
         # drop vector keys
         for key in transcript.keys():
             if 'vector' in key:

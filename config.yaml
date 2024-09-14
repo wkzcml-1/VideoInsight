@@ -4,11 +4,13 @@ LOGGING:
   CONSOLE_OUTPUT: true
   CLEAR_OLD_LOGS: true
 
-video_processing:
+VIDEO_PROCESSING:
   debug: false
+  TARGET_FRAME_COUNT: 10
 
-automatic_speech_recognition:
-  debug: false
+ASR_MODEL:
+  DEVICE: cuda
+  MODEL_ID: openai/whisper-large-v3
 
 TEXT_EMBEDDING_MODEL:
   DEVICE: cpu

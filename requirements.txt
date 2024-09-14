@@ -1,7 +1,7 @@
 Pillow==10.1.0
 torch==2.3.1
 torchvision==0.18.1
-transformers==4.40.0
+transformers==4.45.0
 sentencepiece==0.1.99
 huggingface_hub==0.24.5
 jupyter==1.0.0
@@ -11,3 +11,5 @@ librosa==0.10.2
 accelerate==0.33.0
 bitsandbytes==0.43.3
 pymilvus[model]==2.4.5
+qwen-vl-utils==0.0.4
+autoawq==0.2.6

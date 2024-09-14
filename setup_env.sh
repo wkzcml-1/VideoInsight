@@ -59,6 +59,11 @@ MiniCPM_GGUF_VERSION="ggml-model-Q8_0.gguf"
 MiniCPM_DIR="./checkpoints/$MiniCPM_MODEL"
 huggingface-cli download  $MiniCPM_MODEL $MiniCPM_GGUF_VERSION --local-dir $MiniCPM_DIR
 
+# download Qwen/Qwen2-VL-7B-Instruct-AWQ model
+QWEN_MODEL="Qwen/Qwen2-VL-7B-Instruct-AWQ"
+QWEN_DIR="./checkpoints/$QWEN_MODEL"
+huggingface-cli download  $QWEN_MODEL --local-dir $QWEN_DIR
+
 # download BAAI/bge-m3 model
 BGE_M3_MODEL="BAAI/bge-m3"
 BGE_M3_DIR="./checkpoints/$BGE_M3_MODEL"
