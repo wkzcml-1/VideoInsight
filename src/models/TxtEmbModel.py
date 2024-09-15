@@ -30,7 +30,8 @@ class BgeM3Model(TxtEmbModel):
         path = kwargs.get('model_id', 'BAAI/bge-m3')
         self.model_id = os.path.join(CHECKPOINTS_DIR, path)
         self.device = kwargs.get('device', 'cpu')
-        self.load_model()
+        if kwargs.get('load', True):
+            self.load_model()
 
     def load_model(self):
         use_fp16 = True
@@ -58,6 +59,8 @@ class BgeM3Model(TxtEmbModel):
             texts = [texts]
         ret = self.model(texts)
         dense, sparse = ret['dense'], ret['sparse']
+        # split sparse into list
+        sparse = [sparse[[i], :] for i in range(sparse.shape[0])]
         return dense, sparse
     
     def __del__(self):

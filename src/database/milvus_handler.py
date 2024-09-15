@@ -77,9 +77,12 @@ class MilvusHandler:
             assert 'clip_vector' in entity, "clip_vector key missing in entity"
         elif collection_name != 'audio_segments':
             raise ValueError("Invalid collection name")
-       
 
     def insert_visual_segment(self, entity):
+        # check collection exists
+        if not utility.has_collection('visual_segments'):
+            # create collection if it doesn't exist
+            self.setup_collections()
         # entity can be a dictionary with keys or a list of dictionaries
         if isinstance(entity, list):
             for e in entity:
@@ -100,6 +103,10 @@ class MilvusHandler:
         logger.info(f"Visual segment inserted for video_ids: {video_ids}, segment_ids: {segment_ids}")
 
     def insert_audio_segment(self, entity):
+        # check collection exists
+        if not utility.has_collection('audio_segments'):
+            # create collection if it doesn't exist
+            self.setup_collections()
         # entity can be a dictionary with keys or a list of dictionaries
         if isinstance(entity, list):
             for e in entity:
@@ -136,8 +143,11 @@ class MilvusHandler:
         self.visual_collection.load()
         # vectors must be a dictionary with keys in
         # [dense_vector, sparse_vector, clip_vector] 
+        vector_names = ['dense_vector', 'sparse_vector', 'clip_vector']
         hits = []
         for vector_name, vector in vectors.items():
+            if vector_name not in vector_names:
+                continue
             hits += self.search_vector(self.visual_collection, video_id, vector_name, vector, top_k)
             logger.info(f"Search results for {vector_name}: {hits}")
         # remove duplicates
@@ -153,8 +163,11 @@ class MilvusHandler:
         self.audio_collection.load()
         # vectors must be a dictionary with keys in
         # [dense_vector, sparse_vector] 
+        vector_names = ['dense_vector', 'sparse_vector']
         hits = []
         for vector_name, vector in vectors.items():
+            if vector_name not in vector_names:
+                continue
             hits += self.search_vector(self.audio_collection, video_id, vector_name, vector, top_k)
             logger.info(f"Search results for {vector_name}: {hits}")
         # remove duplicates
@@ -167,8 +180,14 @@ class MilvusHandler:
         return hits_dict
     
     def delete_by_video_id(self, video_id):
+        # load collections
+        self.visual_collection.load()
+        self.audio_collection.load()
         self.visual_collection.delete(expr=f"video_id == '{video_id}'")
         self.audio_collection.delete(expr=f"video_id == '{video_id}'")
+        # release collections
+        self.visual_collection.release()
+        self.audio_collection.release()
         logger.info(f"Deleted all segments for video_id: {video_id}")
     
     def drop_all_collections(self):

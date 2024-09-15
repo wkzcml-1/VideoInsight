@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from PIL import Image
 from transformers import AltCLIPModel, AltCLIPProcessor
 
+import numpy as np
 import os
 import logging
 import torch
@@ -35,7 +36,8 @@ class BAAIAltCLIPModel(ImgTxtRetriModel):
         path = kwargs.get('model_id', 'BAAI/AltCLIP')
         self.model_id = os.path.join(CHECKPOINTS_DIR, path)
         self.device = kwargs.get('device', 'cpu')
-        self.load_model()
+        if kwargs.get('load', True):
+            self.load_model()
 
     def load_model(self):
         torch_dtype = torch.float32
@@ -65,12 +67,12 @@ class BAAIAltCLIPModel(ImgTxtRetriModel):
         if isinstance(image, str):
             image = Image.open(image)
         inputs = self.processor(
-            images=image, return_tensors="pt", padding=True
+            images=image, return_tensors="pt"
         )
         with torch.no_grad():
             image_features = self.model.get_image_features(**inputs)
             image_features /= image_features.norm(p=2, dim=-1, keepdim=True)
-        return image_features
+        return image_features.numpy()
 
     def text_encode(self, text):
         if self.model is None:
@@ -78,8 +80,9 @@ class BAAIAltCLIPModel(ImgTxtRetriModel):
         inputs = self.processor(
             text=text, return_tensors="pt", padding=True
         )
-        scale = self.model.logit_scale.exp()
+        scale = self.model.logit_scale.exp().item()
         with torch.no_grad():
             text_features = self.model.get_text_features(**inputs)
             text_features /= text_features.norm(p=2, dim=-1, keepdim=True)
-        return text_features * scale
+        text_features = text_features * scale
+        return text_features.numpy()

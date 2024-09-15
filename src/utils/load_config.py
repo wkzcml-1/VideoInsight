@@ -1,4 +1,4 @@
-from project_paths import CONFIG_FILE
+from .project_paths import CONFIG_FILE
 import yaml
 
 # load config file

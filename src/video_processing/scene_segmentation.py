@@ -12,7 +12,7 @@ from scenedetect import detect, AdaptiveDetector, split_video_ffmpeg
 
 logger = logging.getLogger(__name__)
 
-def scene_segmentation(video_path, debug=False):
+def scene_segmentation(video_path, min_scene_time=4, output=False):
     """
     Detects scene changes in a video using scenedetect library.
     Parameters
@@ -31,9 +31,14 @@ def scene_segmentation(video_path, debug=False):
 
     # record processing time
     start_time = time.time()
-
+    # read fps from video
+    cap = cv2.VideoCapture(video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    cap.release()
+    # set min_length in frames
+    min_length = int(min_scene_time * fps)
     # scenedetect
-    detector = AdaptiveDetector()
+    detector = AdaptiveDetector(min_scene_len=min_length)
     scene_list = detect(video_path, detector)
 
     # log processing time
@@ -41,7 +46,7 @@ def scene_segmentation(video_path, debug=False):
     logger.info(f"Scene segmentation for {video_path} completed in {processing_time:.2f} seconds")
 
     # print scene list
-    if debug:
+    if output:
         # create video_processing in debug directory
         debug_dir = os.path.join(DEBUG_DIR, 'video_processing')
         # create subdirectory with video name and processing time

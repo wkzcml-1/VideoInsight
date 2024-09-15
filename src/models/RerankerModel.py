@@ -29,7 +29,8 @@ class BgeRerankerModel(RerankerModel):
         path = kwargs.get('model_id', 'BAAI/bge-reranker-v2-m3')
         self.model_id = os.path.join(CHECKPOINTS_DIR, path)
         self.device = kwargs.get('device', 'cpu')
-        self.load_model()
+        if kwargs.get('load', True):
+            self.load_model()
 
     def load_model(self):
         use_fp16 = True

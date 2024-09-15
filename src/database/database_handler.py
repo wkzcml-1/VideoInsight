@@ -1,8 +1,8 @@
 import os
 import logging
 
-from milvus_handler import MilvusHandler
-from mongodb_handler import MongoDBHandler
+from .milvus_handler import MilvusHandler
+from .mongodb_handler import MongoDBHandler
 
 from collections import defaultdict
 
@@ -76,7 +76,7 @@ class DatabaseHandler:
             logger.error(f"Error inserting audio segment: {e}")
 
     # search by time range
-    def search_by_time_range(self, video_id, start_time, end_time, collection):
+    def search_by_time_range(self, collection, video_id, start_time, end_time=None):
         try:
             if collection == 'visual':
                 return self.mongodb_handler.search_visual_segments_by_time(video_id, start_time, end_time)
@@ -88,7 +88,7 @@ class DatabaseHandler:
             logger.error(f"Error searching by time range: {e}")
 
     # search by semantic vector
-    def search_by_query_vectors(self, video_id, vectors, collection, topk=10):
+    def search_by_query_vectors(self, collection, video_id, vectors, topk=10):
         try:
             if collection == 'visual':
                 hits = self.milvus_handler.search_visual_vectors(video_id, vectors, topk)

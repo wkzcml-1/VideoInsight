@@ -147,6 +147,9 @@ class MongoDBHandler:
         # delete all segments and transcripts
         self.db.visual_segments.delete_many({'video_id': video_id})
         self.db.audio_segements.delete_many({'video_id': video_id})
+        # delete counters
+        self.visual_counters.delete_one({'video_id': video_id})
+        self.audio_counters.delete_one({'video_id': video_id})
         logger.info(f"Video segments and transcripts deleted for video_id: {video_id}")
 
     def drop_all_collections(self):
@@ -154,6 +157,8 @@ class MongoDBHandler:
             self.db.video_metadata.drop()
             self.db.visual_segments.drop()
             self.db.audio_segements.drop()
+            self.visual_counters.drop()
+            self.audio_counters.drop()
             logger.info("All mongodb collections dropped")
         except Exception as e:
             logger.error(f"Error dropping collections: {e}")

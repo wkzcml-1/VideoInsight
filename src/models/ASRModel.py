@@ -8,17 +8,14 @@ import os, logging
 import librosa, datetime
 from utils.project_paths import CHECKPOINTS_DIR
 from utils.clear_memory import clear_memory
-from utils.project_paths import DEBUG_DIR
+
+import whisper
 
 logger = logging.getLogger(__name__)
 
 class ASRModel(ABC):
     @abstractmethod
     def transcribe(self, audio, sample_rate=16_000):
-        pass
-
-    @abstractmethod
-    def transcribe_file(self, audio_path):
         pass
     
     @abstractmethod
@@ -29,19 +26,53 @@ class ASRModel(ABC):
     def unload_model(self):
         pass
 
-    
 
-# whisper model
 class WhisperModel(ASRModel):
+    def __init__(self, **kwargs):
+        self.device = kwargs.get('device', 'cpu')
+        path = kwargs.get('model_id', 'openai/whisper-large-v3')
+        self.model_id = os.path.join(CHECKPOINTS_DIR, path, 'model.pt')
+        self.model = None
+        if kwargs.get('load', True):
+            self.load_model()
+        
+    def load_model(self):
+        if self.model is not None:
+            return
+        self.model = whisper.load_model(self.model_id, device=self.device)
+        logger.info(f"Whisper model loaded from {self.model_id}")
+        clear_memory()
+    
+    def unload_model(self):
+        if self.model is None:
+            return
+        del self.model
+        clear_memory()
+        self.model = None
+    
+    def transcribe(self, audio_path):
+        if self.model is None:
+            self.load_model()
+        segments = self.model.transcribe(
+            audio_path,
+            temperature=0.0,
+            compression_ratio_threshold=1.8,
+            condition_on_previous_text=False
+        )
+        return [{'timestamp': (seg['start'], seg['end']), 'text': seg['text']} for seg in segments['segments']]
+        
+
+# whisper model hugingface implementation
+class WhisperModel_huggingface(ASRModel):
     def __init__(self, **kwargs):
         path = kwargs.get('model_id', 'openai/whisper-large-v3')
         self.model_id = os.path.join(CHECKPOINTS_DIR, path)
         self.device = kwargs.get('device', 'cpu')
-        self.debug = kwargs.get('debug', False)
 
         self.torch_dtype = torch.float32 if self.device == 'cpu' else torch.float16
         self.model = None
-        self.load_model()
+        if kwargs.get('load', True):
+            self.load_model()
         self.processor = AutoProcessor.from_pretrained(self.model_id)
        
     def transcribe(self, audio, sample_rate=16_000):
@@ -54,18 +85,9 @@ class WhisperModel(ASRModel):
             feature_extractor=self.processor.feature_extractor,
             torch_dtype=self.torch_dtype,
             device=self.device,
+            chunk_length_s=30,
         )
         result = pipe(audio, return_timestamps=True)['chunks']
-
-        if self.debug:
-            ASR_DEBUG_DIR = os.path.join(DEBUG_DIR, 'asr')
-            os.makedirs(ASR_DEBUG_DIR, exist_ok=True)
-            now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            debug_path = os.path.join(ASR_DEBUG_DIR, f'whisper_{now}.txt')
-            with open(debug_path, 'w') as f:
-                for segment in result:
-                    f.write(f"[{segment['timestamp'][0]} -> {segment['timestamp'][1]}] {segment['text']}\n")
-            logger.info(f"Debug results saved to {debug_path}")
             
         return result
     
