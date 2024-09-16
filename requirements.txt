@@ -13,3 +13,4 @@ bitsandbytes==0.43.3
 pymilvus[model]==2.4.5
 qwen-vl-utils==0.0.4
 autoawq==0.2.6
+openai-whisper

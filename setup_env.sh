@@ -82,7 +82,14 @@ huggingface-cli download  $ALTCLIP_MODEL --local-dir $ALTCLIP_DIR
 # download Systran/faster-distil-whisper-large-v3
 WHISPER_MODEL="openai/whisper-large-v3"
 WHISPER_DIR="./checkpoints/$WHISPER_MODEL"
-huggingface-cli download  $WHISPER_MODEL --local-dir $WHISPER_DIR
+WHISPER_URL="https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt"
+cd WHISPER_DIR
+# download model
+wget $WHISPER_URL
+# back to root directory
+cd - 
+
+# huggingface-cli download  $WHISPER_MODEL --local-dir $WHISPER_DIR
 
 # if not exist dataset directory, create it
 if [ ! -d "dataset" ]; then
