@@ -50,7 +50,7 @@ class WhisperModel(ASRModel):
         clear_memory()
         self.model = None
     
-    def transcribe(self, audio_path):
+    def transcribe(self, audio_path, min_duration=8, eps=0.5):
         if self.model is None:
             self.load_model()
         segments = self.model.transcribe(
@@ -59,7 +59,31 @@ class WhisperModel(ASRModel):
             compression_ratio_threshold=1.8,
             condition_on_previous_text=False
         )
-        return [{'timestamp': (seg['start'], seg['end']), 'text': seg['text']} for seg in segments['segments']]
+        results =  [{'timestamp': (seg['start'], seg['end']), 'text': seg['text']} for seg in segments['segments']]
+        # merge short segments to avoid too many short segments
+        if len(results) > 1:
+            merged_results = []
+            curr_seg = None
+            for seg in results:
+                if curr_seg is None:
+                    curr_seg = seg
+                else:
+                    if abs(seg['timestamp'][0] - curr_seg['timestamp'][1]) < eps:
+                        curr_seg['timestamp'] = (curr_seg['timestamp'][0], seg['timestamp'][1])
+                        curr_seg['text'] += ' ' + seg['text']
+                    else:
+                        # update the current segment
+                        merged_results.append(curr_seg)
+                        curr_seg = seg
+                # judge if the current segment is long enough
+                if curr_seg['timestamp'][1] - curr_seg['timestamp'][0] >= min_duration:
+                    merged_results.append(curr_seg)
+                    curr_seg = None
+            
+            if curr_seg is not None:
+                merged_results.append(curr_seg)
+            results = merged_results
+        return results
         
 
 # whisper model hugingface implementation

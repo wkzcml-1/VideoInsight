@@ -31,7 +31,12 @@ class MongoDBHandler:
         self.db.video_metadata.create_index([("hash", ASCENDING)], unique=True)
         self.db.visual_segments.create_index([("start_time", ASCENDING), ("end_time", ASCENDING)])
         self.db.audio_segements.create_index([("start_time", ASCENDING), ("end_time", ASCENDING)])
+        # setup indexes for search: video_id, start_time, end_time
+        self.db.summary.create_index([("video_id", ASCENDING), ("start_time", ASCENDING), ("end_time", ASCENDING)])
         logger.info("MongoDB indexes created")
+
+    def get_all_video_metadata(self):
+        return list(self.db.video_metadata.find())
 
     def get_next_visual_segment_id(self, video_id):
         counter = self.visual_counters.find_one_and_update(
@@ -102,6 +107,23 @@ class MongoDBHandler:
         logger.info(f"Video transcript inserted for video_id: {video_id}")
         return transcript['segment_id']
     
+    def insert_summary(self, video_id, scene_id, summary):
+        # progressive summary
+        summary['video_id'] = video_id
+        summary['scene_id'] = scene_id
+        self.db.summary.insert_one(summary)
+        logger.info(f"Summary inserted for video_id: {video_id}, scene_id: {scene_id}")
+
+    def get_video_summary(self, video_id):
+        # return max scene_id summary
+        return self.db.summary.find_one({'video_id': video_id}, sort=[('scene_id', -1)])
+
+    def get_num_of_visual_segments(self, video_id):
+        return self.db.visual_segments.count_documents({'video_id': video_id})
+    
+    def get_num_of_audio_segments(self, video_id):
+        return self.db.audio_segements.count_documents({'video_id': video_id})
+    
     def get_video_metadata(self, video_id):
         return self.db.video_metadata.find_one({'video_id': video_id})
     
@@ -150,6 +172,8 @@ class MongoDBHandler:
         # delete counters
         self.visual_counters.delete_one({'video_id': video_id})
         self.audio_counters.delete_one({'video_id': video_id})
+        # delete summary
+        self.db.summary.delete_many({'video_id': video_id})
         logger.info(f"Video segments and transcripts deleted for video_id: {video_id}")
 
     def drop_all_collections(self):
@@ -157,6 +181,7 @@ class MongoDBHandler:
             self.db.video_metadata.drop()
             self.db.visual_segments.drop()
             self.db.audio_segements.drop()
+            self.db.summary.drop()
             self.visual_counters.drop()
             self.audio_counters.drop()
             logger.info("All mongodb collections dropped")

@@ -39,7 +39,7 @@ def scene_segmentation(video_path, min_scene_time=4, output=False):
     min_length = int(min_scene_time * fps)
     # scenedetect
     detector = AdaptiveDetector(min_scene_len=min_length)
-    scene_list = detect(video_path, detector)
+    scene_list = detect(video_path, detector, start_in_scene=True)
 
     # log processing time
     processing_time = time.time() - start_time
@@ -92,7 +92,8 @@ def extract_frames(video_path, start_frame, end_frame):
         if ret:
             frames.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
         else:
-            logger.error(f"Error reading frame {i} from {video_path}")
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            logger.error(f"Error reading frame {i} from {video_path}; video has {total_frames} frames")
             break
     cap.release()
 

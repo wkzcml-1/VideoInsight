@@ -1,7 +1,7 @@
 import os
 import logging
-from project_paths import LOGS_DIR, DEBUG_DIR
-from load_config import load_config
+from .project_paths import LOGS_DIR, DEBUG_DIR
+from .load_config import load_config
 
 # load config file
 config = load_config()

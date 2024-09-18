@@ -75,6 +75,51 @@ class DatabaseHandler:
         except Exception as e:
             logger.error(f"Error inserting audio segment: {e}")
 
+    # get all video metadata
+    def get_all_video_metadata(self):
+        try:
+            return self.mongodb_handler.get_all_video_metadata()
+        except Exception as e:
+            logger.error(f"Error getting all video metadata: {e}")
+
+    # insert summary
+    def insert_summary(self, video_id, scene_id, summary):
+        try:
+            self.mongodb_handler.insert_summary(video_id, scene_id, summary)
+        except Exception as e:
+            logger.error(f"Error inserting summary of video({video_id}), scene({scene_id}): {e}")
+
+    # get number of visual segments
+    def get_num_of_visual_segments(self, video_id):
+        try:
+            return self.mongodb_handler.get_num_of_visual_segments(video_id)
+        except Exception as e:
+            logger.error(f"Error getting number of {video_id} visual segments: {e}")
+    
+    def get_video_summary(self, video_id):
+        return self.mongodb_handler.get_video_summary(video_id)
+    
+    # get number of audio segments
+    def get_num_of_audio_segments(self, video_id):
+        try:
+            return self.mongodb_handler.get_num_of_audio_segments(video_id)
+        except Exception as e:
+            logger.error(f"Error getting number of {video_id} audio segments: {e}")
+
+    # get visual segments
+    def get_visual_segments(self, video_id, segment_id=None):
+        try:
+            return self.mongodb_handler.get_visual_segments(video_id, segment_id)
+        except Exception as e:
+            logger.error(f"Error getting {video_id} visual segments: {e}")
+
+    # get audio segments
+    def get_audio_segments(self, video_id, segment_id=None):
+        try:
+            return self.mongodb_handler.get_audio_segments(video_id, segment_id)
+        except Exception as e:
+            logger.error(f"Error getting {video_id} audio segments: {e}")    
+
     # search by time range
     def search_by_time_range(self, collection, video_id, start_time, end_time=None):
         try:
@@ -108,7 +153,13 @@ class DatabaseHandler:
                 raise ValueError("Invalid collection name in search_by_query_vectors")
         except Exception as e:
             logger.error(f"Error searching by query vector: {e}")
-    
+
+    # search video metadata
+    def search_video_metadata(self, video_id):
+        try:
+            return self.mongodb_handler.get_video_metadata(video_id)
+        except Exception as e:
+            logger.error(f"Error searching video metadata, video_id: {video_id}, error: {e}")
 
     # delete video_info by video_id
     def delete_by_video_id(self, video_id):

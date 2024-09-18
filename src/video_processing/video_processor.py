@@ -86,9 +86,15 @@ class VideoProcessor:
             'duration': duration
         }
     
+    def get_all_video_metadata(self):
+        return self.database_handler.get_all_video_metadata()
+
     def check_video_registered(self, video_path):
         video_hash = self.generate_video_hash(video_path)
         return self.database_handler.check_video_registered(video_hash)
+
+    def get_video_summary(self, video_id):
+        return self.database_handler.get_video_summary(video_id)
     
     # encode text into dense vector, sparse vector, and encode image into clip vector
     def encode_segment(self, text, image=None, generate_clip_vector=False):
@@ -107,7 +113,6 @@ class VideoProcessor:
             return {'dense_vector': dense_vector, 'sparse_vector': sparse_vector}
         return {'dense_vector': dense_vector, 'sparse_vector': sparse_vector, 'clip_vector': clip_vector}
     
-
     def process_video(self, video_path):
         # check if video is already registered
         video_metadata = self.check_video_registered(video_path)
@@ -166,15 +171,47 @@ class VideoProcessor:
             self.database_handler.insert_visual_segment(video_id, visual_info)
         # unload MLLM model
         self.mllm.unload_model()
-        
         return video_id
-
-    def search_video_by_time(self, video_id, start_time, end_time=None):
-        visual_segments = self.database_handler.search_by_time_range('visual', video_id, start_time, end_time)
-        audio_segments = self.database_handler.search_by_time_range('audio', video_id, start_time, end_time)
-        return list(visual_segments), list(audio_segments)
     
-    def search_video_by_semantic(self, video_id, query, v_top_k=5, a_top_k=5):
+    def insert_summary(self, video_id, scene_id, summary):
+        self.database_handler.insert_summary(video_id, scene_id, summary)
+
+    def get_num_of_visual_segments(self, video_id):
+        return self.database_handler.get_num_of_visual_segments(video_id)
+    
+    def get_num_of_audio_segments(self, video_id):
+        return self.database_handler.get_num_of_audio_segments(video_id)
+    
+    def get_visual_segments(self, video_id, segment_id=None):
+        return self.database_handler.get_visual_segments(video_id, segment_id)
+    
+    def get_audio_segments(self, video_id, segment_id=None):
+        return self.database_handler.get_audio_segments(video_id, segment_id)
+    
+    def extract_key_frame(self, video_id, start_time, end_time):
+        video_metadata = self.database_handler.search_video_metadata(video_id)
+        video_path, fps = video_metadata['path'], video_metadata['fps']
+        start_frame, end_frame = int(start_time * fps), int(end_time * fps)
+        frames = extract_frames(video_path, start_frame, end_frame)
+        key_frame = extract_key_frames(frames)
+        return key_frame
+
+    def search_video_by_time(self, video_id, start_time, end_time=None, collection='both'):
+        visual_segments, audio_segments = [], []
+        if collection == 'visual' or collection == 'both':
+            visual_segments = self.database_handler.search_by_time_range('visual', video_id, start_time, end_time)
+            visual_segments = list(visual_segments)
+        if collection == 'audio' or collection == 'both':
+            audio_segments = self.database_handler.search_by_time_range('audio', video_id, start_time, end_time)
+            audio_segments = list(audio_segments)
+        if collection == 'both':
+            return visual_segments, audio_segments
+        return visual_segments if collection == 'visual' else audio_segments
+    
+    def search_video_by_semantic(self, video_id, query, **kwargs):
+        # parameters
+        v_top_k = kwargs.get('v_top_k', 5)
+        a_top_k = kwargs.get('a_top_k', 5)
         # encode query
         query_vector = self.encode_segment(query, generate_clip_vector=True)
         # hybrid search in milvus
@@ -197,8 +234,8 @@ class VideoProcessor:
 
         return visual_segments, audio_segments
     
-    def retrival_augmentation(self, video_id, query, **kwargs):
-        pass
+    def search_video_metadata(self, video_id):
+        return self.database_handler.search_video_metadata(video_id)
         
     def delete_by_video_id(self, video_id):
         self.database_handler.delete_by_video_id(video_id)

@@ -53,7 +53,6 @@ class Qwen2VLModel_AWQ(MMLLMModel):
             self.model_id, min_pixels=min_pixels, max_pixels=max_pixels
         )
         
-
     def create_prompt(self, text, image=None, frames=None):
         if frames and image:
             raise ValueError("Cannot provide both image and frames")
@@ -85,6 +84,7 @@ class Qwen2VLModel_AWQ(MMLLMModel):
             return_tensors="pt",
         )
         inputs = inputs.to("cuda")
+        logger.info(f"Length of input tokens: {inputs.input_ids.shape[1]}")
         # Inference: Generation of the output
         with torch.no_grad():
             generated_ids = self.model.generate(**inputs, max_new_tokens=4096)
@@ -94,6 +94,8 @@ class Qwen2VLModel_AWQ(MMLLMModel):
         output_text = self.processor.batch_decode(
             generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
+        del inputs, generated_ids, generated_ids_trimmed
+        clear_memory()
         return output_text[0]
 
     def load_model(self):

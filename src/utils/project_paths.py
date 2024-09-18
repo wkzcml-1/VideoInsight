@@ -17,6 +17,11 @@ DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
 TODAY = datetime.now().strftime("%Y-%m-%d")
 LOGS_DIR = os.path.join(PROJECT_ROOT, 'logs', TODAY)
 
+# video store directory
+VIDEO_STORE_DIR = os.path.join(DATA_DIR, 'videos', TODAY)
+if not os.path.exists(VIDEO_STORE_DIR):
+    os.makedirs(VIDEO_STORE_DIR)
+
 # config file path
 CONFIG_FILE = os.path.join(PROJECT_ROOT, 'config.yaml')
 
